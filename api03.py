@@ -35,6 +35,6 @@ def get_one(id):# Função que lê um item específico, identificado pelo índic
 
 
 
-#print(get_all())
+print(get_all())
 
 print(get_one(1))
