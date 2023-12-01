@@ -86,7 +86,7 @@ def get_all_owners():
         return {"error": f"Erro inesperado: {str(e)}"}, 500
 
 
-@app.route("/owners/<int:id>", methods=["GET"])
+@app.route("/owner/<int:id>", methods=["GET"])
 def get_one(id):
 
     # Obtém um registro único de 'item', identificado pelo 'id'.
@@ -288,7 +288,7 @@ def edit(id):
     except Exception as e:  # Outros erros.
         return {"error": f"Erro inesperado: {str(e)}"}, 500
     
-@app.route("/owners/<int:id>/items", methods=["GET"])
+@app.route("/owner/<int:id>/items", methods=["GET"])
 def get_items_by_owner(id):
 
     # Obtém todos os itens cadastrados para um proprietário específico.
@@ -331,9 +331,34 @@ def get_items_by_owner(id):
 
     except Exception as e:  # Outros erros.
         return {"error": f"Erro inesperado: {str(e)}"}, 500
+    
+@app.route("/owners/<int:id>/items", methods=["GET"])
+def get_items_with_owners(id):
+    try:
+        # Conecta ao banco de dados.
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
 
+        # Executa a consulta SQL com INNER JOIN.
+        cursor.execute('''
+            SELECT *
+            FROM item
+            INNER JOIN owner ON item_owner = owner_id WHERE item_status !='off' and item_id = ?
+        ''', (id,))
 
-    return {"olá": "mundo"}
+        # Obtém todos os resultados da consulta.
+        results = cursor.fetchone()
+
+        # Fecha a conexão com o banco de dados.
+        conn.close()
+
+        # Retorna os resultados.
+        return dict(results)
+
+    except sqlite3.Error as e:
+        print(f"Erro ao acessar o banco de dados: {str(e)}")
+
+    #return {"olá": "mundo"}
 
 
 # Roda aplicativo Flask.

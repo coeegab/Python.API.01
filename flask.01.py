@@ -286,6 +286,48 @@ def edit(id):
 
     except Exception as e:  # Outros erros.
         return {"error": f"Erro inesperado: {str(e)}"}, 500
+    
+    
+@app.route("/items/search/<string:query>")
+def item_search(query):
+
+    # Pesquisa todos os registros válidos de 'item' que conténha 'query' nos campos
+    # 'item_name', 'item_description' ou 'item_location'.
+    # Request method → GET
+    # Request endpoint → /items/search/<string:query>
+    # Response → JSON
+
+    try:
+        conn = sqlite3.connect(database)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        sql = """
+            SELECT * FROM item
+            WHERE item_status != 'off' AND (
+                item_name LIKE '%' || ? || '%' OR
+                item_description LIKE '%' || ? || '%' OR
+                item_location LIKE '%' || ? || '%'
+            );        
+        """
+        cursor.execute(sql, (query, query, query))
+        items_rows = cursor.fetchall()
+        conn.close()
+
+        items = []
+        for item in items_rows:
+            items.append(dict(item))
+
+        if items:
+            new_items = [prefix_remove('item_', item) for item in items]
+            return new_items, 200
+        else:
+            return {"error": "Nenhum item encontrado"}, 404
+
+    except sqlite3.Error as e:
+        return {"error": f"Erro ao acessar o banco de dados: {str(e)}"}, 500
+
+    except Exception as e:
+        return {"error": f"Erro inesperado: {str(e)}"}, 500
 
     return {"olá": "mundo"}
 
